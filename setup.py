@@ -1,9 +1,9 @@
 import setuptools
 
 setuptools.setup(
-    name="crutils",
+    name="cruntils",
     version="0.0.1",
     description="A collection of utilities, mainly for me.",
-    author="Chris Reed",
-    packages=["crutils"]
+    author="Nambarc",
+    packages=["cruntils"]
 )
