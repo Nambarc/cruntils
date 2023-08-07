@@ -5,7 +5,7 @@ A collection of utilities.
 # Updating package
 
 py -m build
-py -m upload dist/*
+py -m twine upload dist/*
 
 # Package Creation
 
