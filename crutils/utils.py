@@ -2,27 +2,44 @@
 import math
 
 def DegToRad(degrees):
+    """ Convert degrees to radians.
+    """
     return (degrees / 180) * math.pi
 
 def RadToDeg(radians):
+    """ Convert radians to degrees.
+    """
     return (radians / math.pi) * 180
 
 def Circumference(radius):
+    """ Circumference of a circle.
+    """
     return 2 * math.pi * radius
 
 def ToSignedAngle(angle, degrees=True):
+    """ Convert an angle to the range -180 to 180.
+    """
+
+    # Degrees.
     if degrees:
         while angle > 180:
             angle = angle - 360
+        while angle < -180:
+            angle = angle + 360
+
     return angle
-    
+
 def ToUnsignedAngle(angle, degrees=True):
-    while angle < 0:
-        angle += 360
-        
-    while angle > 360:
-        angle -= 360
-    
+    """ Convert an angle to the range 0 to 360.
+    """
+
+    # Degrees.
+    if degrees:
+        while angle > 360:
+            angle -= 360
+        while angle < 0:
+            angle += 360
+
     return angle
 
 def DdToDms(dd, latitude=True, degrees=True):
@@ -71,6 +88,8 @@ def DdToDms(dd, latitude=True, degrees=True):
     return dms_str
 
 def LatLonDdToDms(lat, lon, degrees=True):
+    """ Convert a DD lat/lon pair to a DMS string.
+    """
     dms_lat = DdToDms(lat, True)
     dms_lon = DdToDms(lon, False)
     return f"{dms_lat},{dms_lon}"

@@ -31,6 +31,8 @@ def BearingBetween(lat_1, lon_1, lat_2, lon_2, degrees=True):
 
 def DistanceBetween(lat_1, lon_1, lat_2, lon_2, degrees=True):
     """ Calculate distance between two location in metres.
+
+    From: https://www.movable-type.co.uk/scripts/latlong.html
     """
     global wgs84_earth_equatorial_radius_m
     
@@ -47,8 +49,6 @@ def DistanceBetween(lat_1, lon_1, lat_2, lon_2, degrees=True):
     c = 2 * math.atan2(math.sqrt(a), math.sqrt(1-a))
     d = wgs84_earth_equatorial_radius_m * c
     return d
-    
-    
 
 def Extrapolate(lat, lon, brg, dst, degrees=True):
     """ Calculate a new position given a start position, bearing and distance
