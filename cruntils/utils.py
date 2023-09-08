@@ -1,6 +1,30 @@
 
 import math
 
+def Cos2(angle):
+    return math.pow(math.cos(angle), 2)
+
+def Cos3(angle):
+    return math.pow(math.cos(angle), 3)
+
+def Cos4(angle):
+    return math.pow(math.cos(angle), 4)
+
+def Cos5(angle):
+    return math.pow(math.cos(angle), 5)
+
+def Tan2(angle):
+    return math.pow(math.tan(angle), 2)
+
+def Tan3(angle):
+    return math.pow(math.tan(angle), 3)
+
+def Tan4(angle):
+    return math.pow(math.tan(angle), 4)
+
+def Tan5(angle):
+    return math.pow(math.tan(angle), 5)
+
 def DegToRad(degrees):
     """ Convert degrees to radians.
     """
