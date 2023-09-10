@@ -1,10 +1,16 @@
 
+# Core Python imports.
+from enum import Enum
 import math
 
 #------------------------------------------------------------------------------
 # Constants.
 pi2 = (2 * math.pi)
 ft_per_metre = 3.28084
+
+class EUnits(Enum):
+    Degrees = 1
+    Radians = 2
 
 #------------------------------------------------------------------------------
 # Trig identities.
@@ -50,38 +56,6 @@ def Circumference(radius):
     """ Circumference of a circle.
     """
     return 2 * math.pi * radius
-
-def ToSignedAngle(angle, degrees=True):
-    """ Convert an angle to the range -180 to 180 (-pi to pi).
-    """
-    if degrees:
-        while angle > 180:
-            angle = angle - 360
-        while angle < -180:
-            angle = angle + 360
-    else:
-        while angle > math.pi:
-            angle = angle - pi2
-        while angle < -math.pi:
-            angle = angle + pi2
-
-    return angle
-
-def ToUnsignedAngle(angle, degrees=True):
-    """ Convert an angle to the range 0 to 360 (0 to 2*pi).
-    """
-    if degrees:
-        while angle > 360:
-            angle -= 360
-        while angle < 0:
-            angle += 360
-    else:
-        while angle > pi2:
-            angle -= pi2
-        while angle < 0:
-            angle += pi2
-
-    return angle
 
 def MetresToFeet(metres):
     return metres * ft_per_metre

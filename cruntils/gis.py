@@ -2,12 +2,18 @@
 # Core Python imports.
 from enum import Enum
 import math
+import os
 
 # Local imports.
 from . import utils
 
-#wgs84_earth_equatorial_radius_m = 6378137
-wgs84_earth_equatorial_radius_m = 6371000
+# There is no single "correct" equatorial radius for performing calculations
+# with latitude and longitude values - the radius to use is dependent on the
+# reference ellipsoid the values use.
+#
+# As such, these calculations all need improving. They should be built into
+# the new location class.
+wgs84_earth_equatorial_radius_m = 6378137
 
 class ELatLon(Enum):
     """ Specify if a coordinate is a latitude or longitude.
@@ -27,6 +33,64 @@ class EReferenceEllipsoid(Enum):
     """
     Airy1830 = 1
     Wgs84    = 2
+
+class CLocation():
+    """ A class for representing a single geographic location.
+    """
+
+    def __init__(self, lat=None, lon=None, lat_signed=True, lon_signed=True):
+        self.Latitude = lat
+        self.Longitude = lon
+        self.LatSigned = lat_signed
+        self.LonSigned = lon_signed
+        self.ReferenceEllipsoid = EReferenceEllipsoid.Wgs84
+
+    def SetLatLon(self, lat, lon, lat_signed=True, lon_signed=True):
+        self.Latitude = lat
+        self.Longitude = lon
+        self.LatSigned = lat_signed
+        self.LonSigned = lon_signed
+
+    def GetLat(self, signed=True):
+        """ As per ISO 6709, latitudes run from 90 to -90.
+
+        Give the user the option to express this as an un-signed number
+        running from 180 to 0.
+        """
+        if signed:
+            if self.LatSigned:
+                return self.Latitude
+            else:
+                return self.Latitude + 90
+        else:
+            if self.LatSigned:
+                return self.Latitude + 90
+            else:
+                return self.Latitude
+            
+    def GetLon(self, signed=True):
+        """ As per ISO 6709, longitudes run from -180 to 180.
+
+        Give the user the option to express this as an un-signed number
+        running from 0 to 360.
+        """
+        if signed:
+            if self.LonSigned:
+                return self.Longitude
+            else:
+                return self.Longitude + 180
+        else:
+            if self.LonSigned:
+                return self.Longitude + 180
+            else:
+                return self.Longitude
+            
+    def GetLatLon(self, signed=True):
+        """ Convenience function for getting lat and lon.
+        """
+        lat = self.GetLat(signed)
+        lon = self.GetLon(signed)
+        return lat, lon
 
 def BearingBetween(lat_1, lon_1, lat_2, lon_2, degrees=True):
     """ Calculate initial bearing between two locations.
@@ -126,15 +190,19 @@ def DmsToDd(dms_str):
 
 def DdToDms(dd, lat_or_lon):
 
-    deg = int(dd)
-    min = int((dd - deg) * 60)
-    sec = (dd - deg - (min / 60)) * 3600
+    # Do maths with positive value.
+    dd_abs = abs(dd)
+    deg = int(dd_abs)
+    min = int((dd_abs - deg) * 60)
+    sec = (dd_abs - deg - (min / 60)) * 3600
 
+    # Add bonus zeroes to first elements, seems to be a convention.
     if lat_or_lon == ELatLon.Lat:
         deg_str = f"{deg}".rjust(2, "0")
     elif lat_or_lon == ELatLon.Lon:
         deg_str = f"{deg}".rjust(3, "0")
 
+    # Work out the suffix.
     if lat_or_lon == ELatLon.Lat:
         suffix = "N"
         if dd < 0:
@@ -146,6 +214,11 @@ def DdToDms(dd, lat_or_lon):
 
     dms_str = f"{deg_str} {min} {round(sec, 4)} {suffix}"
     return dms_str
+
+def LatLonDdToDms(lat_dd, lon_dd):
+    lat_dms = DdToDms(lat_dd, ELatLon.Lat)
+    lon_dms = DdToDms(lon_dd, ELatLon.Lon)
+    return lat_dms, lon_dms
 
 def Eccentricity1(a, b):
     """ Get ellipsoid first eccentricity.
@@ -370,3 +443,113 @@ def NorthingsEastingsToGrid(ntings, etings, digits = 10):
     n = f"{int(n)}".rjust(int(digits / 2), "0")
 
     return f"{letter_pair} {e} {n}"
+
+class Egm():
+    """ Provide EGM96 geoid height values for a given latitude, longitude.
+
+    There are several different EGM models available. I've implemented the
+    EGM96 model - which is probably getting a little long in the tooth at this
+    point. I would like to implement additional models in the future.
+
+    I would also like to implement a spline interpolation, in addition to the
+    current bilinear interpolation.
+
+    I've implemented 6 tests of my EGM96 geoid height calculator. These tests
+    are performed against the sample values provided with the EGM96 geoid
+    height data. My interpolated values are close, but not identical to the
+    sample values provided. This may be because the sample values were
+    interpolated using a different mechanism (my bilinear vs. their spline),
+    or I may have made a mistake in my interpolation / parsing of the file.
+    Either way, the values I'm producing are good enough for my purposes but
+    this implementation may require further work.
+    """
+    def __init__(self):
+        """ On class initialisation, read in the grid data.
+        """
+
+        # Path to the EGM96 geoid height values. The element of the name mean:
+        # EGM96, world wide, 15 arc minute, grid height.
+        # Need a little magic to ensure the file is read from our own directory
+        # instead of the current working directory.
+        self.Egm96FilePath = os.path.realpath(__file__).replace("gis.py", "EGM96_WW_15M_GH.GRD")
+        self.Egm96GridHeights = []
+
+        # Separation between each geoid height, in decimal degrees.
+        # 15 arc minutes. 15 / 60 = 0.25 degrees.
+        self.StepSize = 0.25
+
+        # Load the data.
+        self.LoadData()
+
+    def LoadData(self):
+        """ Read EGM data from file into memory.
+        """
+
+        # Read data from file.
+        with open(self.Egm96FilePath, "r") as egm96_file:
+            data = egm96_file.read()
+
+        # Parse into array.
+        current_row = []
+        row_length = 0
+        for index, line in enumerate(data.split("\n")):
+
+            # Skip blank lines.
+            if line == "":
+                continue
+
+            # Skip the first item.
+            if index == 0:
+                continue
+
+            # Break the line on space character.
+            line_parts = line.split(" ")
+
+            # Filter out empty strings.
+            line_parts = list(filter(None, line_parts))
+
+            # Add data to current row.
+            for value in line_parts:
+                current_row.append(float(value))
+
+            # End row when enough data captured.
+            row_length += len(line_parts)
+            if len(line_parts) == 1:
+                self.Egm96GridHeights.append(current_row)
+                current_row = []
+                row_length = 0
+
+    def GetHeight(self, lat, lon):
+        """ Get the EGM96 geoid height for a given latitude and longitude.
+
+        Latitude and Longitude values must be provided as unsigned, decimal
+        degrees values.
+        """
+
+        # Assume we've been passed unsigned latitude and longitude values so
+        # there's no need to do any conversions.
+        x = lon
+        y = lat
+
+        # Invert y value. Maximum latitude is at top of the world, in the
+        # arctic. Top y value is at the bottom of the world.
+        y = 180 - y
+
+        # Calculate the 4 surrounding points.
+        x1 = x - (x % self.StepSize)
+        x2 = x1 + self.StepSize
+        y1 = y - (y % self.StepSize)
+        y2 = y1 + self.StepSize
+
+        # Get the geoid heights at the 4 surrounding points.
+        q11 = self.Egm96GridHeights[int(y1 / self.StepSize)][int(x1 / self.StepSize)]
+        q12 = self.Egm96GridHeights[int(y2 / self.StepSize)][int(x1 / self.StepSize)]
+        q21 = self.Egm96GridHeights[int(y1 / self.StepSize)][int(x2 / self.StepSize)]
+        q22 = self.Egm96GridHeights[int(y2 / self.StepSize)][int(x2 / self.StepSize)]
+
+        # Bilinear Interpolation of 4 points, to get our point.
+        xy1 = (((x2 - x) / (x2 - x1)) * q11) + (((x - x1) / (x2 - x1)) * q21)
+        xy2 = (((x2 - x) / (x2 - x1)) * q12) + (((x - x1) / (x2 - x1)) * q22)
+        yx = (((y2 - y) / (y2 - y1)) * xy1) + (((y - y1) / (y2 - y1)) * xy2)
+
+        return round(yx, 2)
