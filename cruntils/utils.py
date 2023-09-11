@@ -62,3 +62,28 @@ def MetresToFeet(metres):
 
 def FeetToMetres(feet):
     return feet / ft_per_metre
+
+def ConvertAngle(angle, signed=True, units=EUnits.Degrees):
+    """ Convert angle to signed or unsigned.
+    """
+
+    # Convert to degrees.
+    if units == EUnits.Radians:
+        angle = RadToDeg(angle)
+
+    # Convert to unsigned, 0 to 360 first.
+    while angle < 0:
+        angle += 360
+    while angle >= 360:
+        angle -= 360
+
+    # Do requested sign-ness.
+    if signed:
+        if angle > 180:
+            angle -= 360
+
+    # Back to original units.
+    if units == EUnits.Radians:
+        angle = DegToRad(angle)
+
+    return angle

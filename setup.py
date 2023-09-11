@@ -5,5 +5,7 @@ setuptools.setup(
     version="0.0.5",
     description="A collection of utilities, mainly for me.",
     author="Nambarc",
-    packages=["cruntils"]
+    packages=["cruntils"],
+    include_package_data=True,
+    package_data={"": ["EGM96_WW_15M_GH.GRD"]}
 )

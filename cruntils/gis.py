@@ -61,13 +61,13 @@ class CLocation():
             if self.LatSigned:
                 return self.Latitude
             else:
-                return self.Latitude + 90
+                return self.Latitude -90
         else:
             if self.LatSigned:
                 return self.Latitude + 90
             else:
                 return self.Latitude
-            
+
     def GetLon(self, signed=True):
         """ As per ISO 6709, longitudes run from -180 to 180.
 
@@ -78,13 +78,13 @@ class CLocation():
             if self.LonSigned:
                 return self.Longitude
             else:
-                return self.Longitude + 180
+                return self.Longitude - 180
         else:
             if self.LonSigned:
                 return self.Longitude + 180
             else:
                 return self.Longitude
-            
+
     def GetLatLon(self, signed=True):
         """ Convenience function for getting lat and lon.
         """
@@ -521,6 +521,8 @@ class Egm():
 
     def GetHeight(self, lat, lon):
         """ Get the EGM96 geoid height for a given latitude and longitude.
+
+        Latitude and longitude values must use the WGS84 reference ellipsoid.
 
         Latitude and Longitude values must be provided as unsigned, decimal
         degrees values.

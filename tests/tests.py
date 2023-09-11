@@ -238,6 +238,79 @@ assert egm.GetHeight(*location.GetLatLon(False)) == 50.04
 location = cruntils.gis.CLocation(-0.4667440, 0.0023000, True, False)
 assert egm.GetHeight(*location.GetLatLon(False)) == 17.34
 
+# Test converting angles, signed / un-signed.
+assert cruntils.utils.ConvertAngle(-180, False) == 180
+assert cruntils.utils.ConvertAngle(-170, False) == 190
+assert cruntils.utils.ConvertAngle(-160, False) == 200
+assert cruntils.utils.ConvertAngle(-150, False) == 210
+assert cruntils.utils.ConvertAngle(-140, False) == 220
+assert cruntils.utils.ConvertAngle(-130, False) == 230
+assert cruntils.utils.ConvertAngle(-120, False) == 240
+assert cruntils.utils.ConvertAngle(-110, False) == 250
+assert cruntils.utils.ConvertAngle(-100, False) == 260
+assert cruntils.utils.ConvertAngle(-90, False)  == 270
+assert cruntils.utils.ConvertAngle(-80, False)  == 280
+assert cruntils.utils.ConvertAngle(-70, False)  == 290
+assert cruntils.utils.ConvertAngle(-60, False)  == 300
+assert cruntils.utils.ConvertAngle(-50, False)  == 310
+assert cruntils.utils.ConvertAngle(-40, False)  == 320
+assert cruntils.utils.ConvertAngle(-30, False)  == 330
+assert cruntils.utils.ConvertAngle(-20, False)  == 340
+assert cruntils.utils.ConvertAngle(-10, False)  == 350
+assert cruntils.utils.ConvertAngle(-0, False)   == 0
+assert cruntils.utils.ConvertAngle(0, False)    == 0
+assert cruntils.utils.ConvertAngle(45, False)   == 45
+assert cruntils.utils.ConvertAngle(90, False)   == 90
+assert cruntils.utils.ConvertAngle(180, False)  == 180
+assert cruntils.utils.ConvertAngle(270, False)  == 270
+assert cruntils.utils.ConvertAngle(360, False)  == 0
+assert cruntils.utils.ConvertAngle(400, False)  == 40
+
+assert cruntils.utils.ConvertAngle(0, True)  == 0
+assert cruntils.utils.ConvertAngle(10, True)  == 10
+assert cruntils.utils.ConvertAngle(20, True)  == 20
+assert cruntils.utils.ConvertAngle(30, True)  == 30
+assert cruntils.utils.ConvertAngle(40, True)  == 40
+assert cruntils.utils.ConvertAngle(50, True)  == 50
+assert cruntils.utils.ConvertAngle(60, True)  == 60
+assert cruntils.utils.ConvertAngle(70, True)  == 70
+assert cruntils.utils.ConvertAngle(80, True)  == 80
+assert cruntils.utils.ConvertAngle(90, True)  == 90
+assert cruntils.utils.ConvertAngle(100, True)  == 100
+assert cruntils.utils.ConvertAngle(110, True)  == 110
+assert cruntils.utils.ConvertAngle(120, True)  == 120
+assert cruntils.utils.ConvertAngle(130, True)  == 130
+assert cruntils.utils.ConvertAngle(140, True)  == 140
+assert cruntils.utils.ConvertAngle(150, True)  == 150
+assert cruntils.utils.ConvertAngle(160, True)  == 160
+assert cruntils.utils.ConvertAngle(170, True)  == 170
+assert cruntils.utils.ConvertAngle(180, True)  == 180
+assert cruntils.utils.ConvertAngle(190, True)  == -170
+assert cruntils.utils.ConvertAngle(200, True)  == -160
+assert cruntils.utils.ConvertAngle(210, True)  == -150
+assert cruntils.utils.ConvertAngle(220, True)  == -140
+assert cruntils.utils.ConvertAngle(230, True)  == -130
+assert cruntils.utils.ConvertAngle(240, True)  == -120
+assert cruntils.utils.ConvertAngle(250, True)  == -110
+assert cruntils.utils.ConvertAngle(260, True)  == -100
+assert cruntils.utils.ConvertAngle(270, True)  == -90
+assert cruntils.utils.ConvertAngle(280, True)  == -80
+assert cruntils.utils.ConvertAngle(290, True)  == -70
+assert cruntils.utils.ConvertAngle(300, True)  == -60
+assert cruntils.utils.ConvertAngle(310, True)  == -50
+assert cruntils.utils.ConvertAngle(320, True)  == -40
+assert cruntils.utils.ConvertAngle(330, True)  == -30
+assert cruntils.utils.ConvertAngle(340, True)  == -20
+assert cruntils.utils.ConvertAngle(350, True)  == -10
+assert cruntils.utils.ConvertAngle(360, True)  == 0
+assert cruntils.utils.ConvertAngle(370, True)  == 10
+assert cruntils.utils.ConvertAngle(380, True)  == 20
+assert cruntils.utils.ConvertAngle(390, True)  == 30
+assert cruntils.utils.ConvertAngle(400, True)  == 40
+
+
+
+
 # Define a list of trig pillar locations.
 trig_pillar_locations_list = [
     { "name": "Outwood",        "grid_ref": "TQ 33246 45539", "wgs84_latlon": ["51 11 36.76 N", "000 05 40.22 W"]},
