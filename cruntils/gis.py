@@ -45,6 +45,11 @@ class CLocation():
         self.LonSigned = lon_signed
         self.ReferenceEllipsoid = EReferenceEllipsoid.Wgs84
 
+        self.Name = ""
+
+    def SetName(self, name):
+        self.Name = name
+
     def SetLatLon(self, lat, lon, lat_signed=True, lon_signed=True):
         self.Latitude = lat
         self.Longitude = lon
@@ -56,6 +61,11 @@ class CLocation():
 
         Give the user the option to express this as an un-signed number
         running from 180 to 0.
+
+        When converting latitudes between signed and un-signed the position of
+        0 moves. For 90 to -90, 0 is on the equator. For 180 to 0, 0 is on the
+        south pole. As such, to convert between the to we just shift the value
+        by 90 degrees.
         """
         if signed:
             if self.LatSigned:
@@ -73,17 +83,12 @@ class CLocation():
 
         Give the user the option to express this as an un-signed number
         running from 0 to 360.
+
+        When converting longitudes between signed and un-signed, the position
+        of 0 does not move. As such, we can just add or subtract a full
+        rotation if required.
         """
-        if signed:
-            if self.LonSigned:
-                return self.Longitude
-            else:
-                return self.Longitude - 180
-        else:
-            if self.LonSigned:
-                return self.Longitude + 180
-            else:
-                return self.Longitude
+        return utils.ConvertAngle(self.Longitude, signed)
 
     def GetLatLon(self, signed=True):
         """ Convenience function for getting lat and lon.
@@ -519,6 +524,10 @@ class Egm():
                 current_row = []
                 row_length = 0
 
+        # Now reverse the order of the rows so we don't have to play with
+        # latitude values when indexing.
+        self.Egm96GridHeights.reverse()
+
     def GetHeight(self, lat, lon):
         """ Get the EGM96 geoid height for a given latitude and longitude.
 
@@ -532,10 +541,6 @@ class Egm():
         # there's no need to do any conversions.
         x = lon
         y = lat
-
-        # Invert y value. Maximum latitude is at top of the world, in the
-        # arctic. Top y value is at the bottom of the world.
-        y = 180 - y
 
         # Calculate the 4 surrounding points.
         x1 = x - (x % self.StepSize)

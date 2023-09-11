@@ -68,10 +68,20 @@ def ConvertAngle(angle, signed=True, units=EUnits.Degrees):
     """
 
     # Convert to degrees.
+    _angle = angle
     if units == EUnits.Radians:
-        angle = RadToDeg(angle)
+        _angle = RadToDeg(angle)
+
+    # Check if we need to do anything.
+    if signed:
+        if (-180 < _angle) and (_angle < 180):
+            return angle
+    else:
+        if (0 < _angle) and (_angle < 360):
+            return angle
 
     # Convert to unsigned, 0 to 360 first.
+    angle = _angle
     while angle < 0:
         angle += 360
     while angle >= 360:
