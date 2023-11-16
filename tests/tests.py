@@ -51,6 +51,8 @@ assert location.GetLat(False) == 119.97914809004421
 assert location.GetLon(True)  == 31.13419577459987
 assert location.GetLon(False) == 31.13419577459987
 assert egm.GetHeight(*location.GetLatLon(False)) == 15.46
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "29 58 44.9331 N"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "031 8 3.1048 E"
 
 location = cruntils.gis.CLocation(13.412544924724, 103.866982081196)
 assert location.GetLat(True)  == 13.412544924724
@@ -58,6 +60,8 @@ assert location.GetLat(False) == 103.412544924724
 assert location.GetLon(True)  == 103.866982081196
 assert location.GetLon(False) == 103.866982081196
 assert egm.GetHeight(*location.GetLatLon(False)) == -20.74
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "13 24 45.1617 N"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "103 52 1.1355 E"
 
 location = cruntils.gis.CLocation(-33.856814228066426, 151.21527245566526)
 assert location.GetLat(True)  == -33.856814228066426
@@ -65,6 +69,8 @@ assert location.GetLat(False) == 56.143185771933574
 assert location.GetLon(True)  == 151.21527245566526
 assert location.GetLon(False) == 151.21527245566526
 assert egm.GetHeight(*location.GetLatLon(False)) == 22.46
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "33 51 24.5312 S"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "151 12 54.9808 E"
 
 location = cruntils.gis.CLocation(48.85824194192016, 2.2947293419960277)
 assert location.GetLat(True)  == 48.85824194192016
@@ -72,6 +78,8 @@ assert location.GetLat(False) == 138.85824194192017
 assert location.GetLon(True)  == 2.2947293419960277
 assert location.GetLon(False) == 2.2947293419960277
 assert egm.GetHeight(*location.GetLatLon(False)) == 44.58
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "48 51 29.671 N"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "002 17 41.0256 E"
 
 location = cruntils.gis.CLocation(27.175082927193554, 78.04218888603889)
 assert location.GetLat(True)  == 27.175082927193554
@@ -79,6 +87,8 @@ assert location.GetLat(False) == 117.17508292719356
 assert location.GetLon(True)  == 78.04218888603889
 assert location.GetLon(False) == 78.04218888603889
 assert egm.GetHeight(*location.GetLatLon(False)) == -56.65
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "27 10 30.2985 N"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "078 2 31.88 E"
 
 location = cruntils.gis.CLocation(25.197099645751745, 55.27436713304521)
 assert location.GetLat(True)  == 25.197099645751745
@@ -86,6 +96,8 @@ assert location.GetLat(False) == 115.19709964575175
 assert location.GetLon(True)  == 55.27436713304521
 assert location.GetLon(False) == 55.27436713304521
 assert egm.GetHeight(*location.GetLatLon(False)) == -33.72
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "25 11 49.5587 N"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "055 16 27.7217 E"
 
 location = cruntils.gis.CLocation(-13.16288083855811, -72.54499246486483)
 assert location.GetLat(True)  == -13.16288083855811
@@ -93,6 +105,8 @@ assert location.GetLat(False) == 76.83711916144189
 assert location.GetLon(True)  == -72.54499246486483
 assert location.GetLon(False) == 287.45500753513517
 assert egm.GetHeight(*location.GetLatLon(False)) == 41.0
+assert cruntils.gis.LatDdToDms(location.GetLat()) == "13 9 46.371 S"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "072 32 41.9729 W"
 
 location = cruntils.gis.CLocation(40.4328165861077, 116.56384082714345)
 assert location.GetLat(True)  == 40.4328165861077
@@ -339,6 +353,7 @@ assert cruntils.utils.ConvertAngle(380, True)  == 20
 assert cruntils.utils.ConvertAngle(390, True)  == 30
 assert cruntils.utils.ConvertAngle(400, True)  == 40
 
+# Test conversion to and from DD and DMS.
 
 
 

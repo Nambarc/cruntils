@@ -220,6 +220,16 @@ def DdToDms(dd, lat_or_lon):
     dms_str = f"{deg_str} {min} {round(sec, 4)} {suffix}"
     return dms_str
 
+def LatDdToDms(dd):
+    """ Convert latitude in decimal degrees to degrees minutes seconds.
+    """
+    return DdToDms(dd, ELatLon.Lat)
+
+def LonDdToDms(dd):
+    """ Convert longitude in decimal degrees to degrees minutes seconds.
+    """
+    return DdToDms(dd, ELatLon.Lon)
+
 def LatLonDdToDms(lat_dd, lon_dd):
     lat_dms = DdToDms(lat_dd, ELatLon.Lat)
     lon_dms = DdToDms(lon_dd, ELatLon.Lon)

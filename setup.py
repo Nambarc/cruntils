@@ -7,5 +7,8 @@ setuptools.setup(
     author="Nambarc",
     packages=["cruntils"],
     include_package_data=True,
-    package_data={"": ["EGM96_WW_15M_GH.GRD"]}
+    package_data={"": ["EGM96_WW_15M_GH.GRD"]},
+    install_requires=[
+        "pyserial>=3.5"
+    ]
 )
