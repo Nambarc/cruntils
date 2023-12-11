@@ -10,6 +10,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')
 # Import our package.
 import cruntils
 
+cruntils.gis.GridEastNorthToLatLon(651409.903, 313177.270)
+
 # EGM96 tests.
 # NB. Please read notes on EGM implementation.
 # Tests are performed against the sample values provided in the readme.txt

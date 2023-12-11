@@ -383,8 +383,8 @@ def LatLonToGridEastNorth(lat, lon):
 
     # National grid constants.
     F0 = 0.9996012717           # Scale factor on central meridian.
-    lat_0 = utils.DegToRad(49)  # True origin latitude.
-    lon_0 = utils.DegToRad(-2)  # True origin longitude.
+    lat_0 = utils.DegToRad(49)  # True origin latitude. φ, phi
+    lon_0 = utils.DegToRad(-2)  # True origin longitude. λ, lambda
     E0 = 400000                 # True origin eastings metres.
     N0 = -100000                # True origin northings metres.
 
@@ -458,6 +458,63 @@ def NorthingsEastingsToGrid(ntings, etings, digits = 10):
     n = f"{int(n)}".rjust(int(digits / 2), "0")
 
     return f"{letter_pair} {e} {n}"
+
+def GridEastNorthToLatLon(ntings, etings):
+    """ Convert Ordanance Survey grid eastings northing to latitude longitude.
+
+    Converting from easting/northings to latitude/longitude is an iterative
+    procedure.
+    """
+
+    # True origin latitude. φ, phi
+    lat_0 = utils.DegToRad(49)
+
+    # True origin longitude. λ, lambda
+    lon_0 = utils.DegToRad(-2)
+
+    # True origin eastings metres.
+    e0 = 400000
+
+    # True origin northings metres.
+    n0 = -100000
+
+    # Scale factor on central meridian.
+    f0 = 0.9996012717
+
+    # Get ellipsoid constants.
+    a, b = GetAiry1830()
+
+
+    lat_dash = ((ntings - n0) / (a * f0)) + lat_0
+    print(f"Lat dash: {lat_dash}")
+
+    # TODO
+    # THIS IS NOT FINISHED BUT THERE'S OTHER STUFF I WANT TO ADD.
+
+    m = 0
+    while ((ntings - n0 - m) >= 0.001):
+
+        print(f"Value: {ntings - n0 - m}")
+
+        # Compute m.
+        m1 = (1 + ntings + ((5/4) * math.pow(ntings, 2)) + ((5/4) * math.pow(ntings, 3))) * (lat_dash - lat_0)
+        m2_1 = ((3 * ntings) + (3 * math.pow(ntings, 2)) + ((21/8) * math.pow(ntings, 3)))
+        m2_2 = math.sin(lat_dash - lat_0)
+        m2_3 = math.cos(lat_dash + lat_0)
+        m2 = m2_1 * m2_2 * m2_3
+        m3_1 = ((15/8) * math.pow(ntings, 2)) + ((15/8) * math.pow(ntings, 3))
+        m3_2 = math.sin(2 * (lat_dash - lat_0)) * math.cos(2 * (lat_dash + lat_0))
+        m3_3 = (35/24) * math.pow(ntings, 3) * math.sin(3 * (lat_dash - lat_0)) * math.cos(3 * (lat_dash + lat_0))
+        m3 = (m3_1 * m3_2) - m3_3
+        m = b * f0 * (m1 - m2 + m3)
+
+        # Compute new value for lat_dash.
+        lat_dash = ((ntings - n0) / (a * f0)) + lat_dash
+
+
+
+
+
 
 class Egm():
     """ Provide EGM96 geoid height values for a given latitude, longitude.
