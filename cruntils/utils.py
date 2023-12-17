@@ -327,3 +327,18 @@ class Grid:
         # Increase length of each row.
         for row in self.rows:
             row.insert(col_index, default_value)
+
+    def GetPositions(self, value):
+        """ Get a list of grid positions for the given value.
+
+        For every location on the grid that the value of the grid equals the
+        provided value. return the location.
+
+        A location is [row_index , col_index].
+        """
+        items = []
+        for row_index, row in enumerate(self.GetRows()):
+            for col_index, item in enumerate(row):
+                if item == value:
+                    items.append([row_index, col_index])
+        return items
