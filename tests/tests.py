@@ -377,3 +377,6 @@ trig_pillar_locations_list = [
 ]
 
 # Need to do maths for grid to lat lon!
+
+# Test psutils module.
+print(f"Primary IP address: {cruntils.psutils.GetPrimaryIp()}")

@@ -311,10 +311,22 @@ class Grid:
         if self.af_row >= self.RowCount():
             self.ResetAutoFill()
 
-    def InsertRow(self, row_index, default_value=None):
+    def InsertRow(self, row_index, row_data = [], default_value=None):
         """ Insert a row at the specified index.
         Can specify a default value to insert.
+
+        NB. Cannot currently insert a pre-made set of values!
         """
+
+        # TODO: Want to add insert row of populated data mechanism, and append row convenicnce function!
+
+        # If we have a pre-made row of data.
+        # If it's the same width as the current grid width, append it.
+        # Or if grid width is 0, append it.
+        if (len(row_data) == self.Width()) or (self.Width() == 0):
+            self.rows.insert(row_index, row_data)
+        
+
 
         # Insert empty row.
         self.rows.insert(row_index, [default_value] * self.Width())
@@ -322,6 +334,8 @@ class Grid:
     def InsertCol(self, col_index, default_value=None):
         """ Insert a column at the specified index.
         Can specify a default value to insert.
+
+        NB. Cannot currently insert a pre-made set of values!
         """
 
         # Increase length of each row.
