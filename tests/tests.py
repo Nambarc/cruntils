@@ -380,3 +380,4 @@ trig_pillar_locations_list = [
 
 # Test psutils module.
 print(f"Primary IP address: {cruntils.psutils.GetPrimaryIp()}")
+print(f"Machine uptime: {cruntils.psutils.GetUptime()} seconds")

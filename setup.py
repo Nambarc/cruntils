@@ -2,8 +2,8 @@ import setuptools
 
 setuptools.setup(
     name="cruntils",
-    version="0.0.10",
-    description="A collection of utilities, mainly for me.",
+    version="0.0.11",
+    description="A collection of utilities.",
     author="Nambarc",
     packages=["cruntils"],
     include_package_data=True,

@@ -1,5 +1,9 @@
 
 # Core Python imports.
+import ctypes
+import datetime
+import os
+import platform
 import socket
 
 def CreateService():
@@ -50,3 +54,38 @@ def GetPrimaryIp(target_address = "8.8.8.8", target_port = 80):
     # Close the socket and return the IP.
     sock.close()
     return ip
+
+def GetUptime():
+    """ Get machine uptime in seconds.
+    """
+
+    # Windows.
+    if platform.system() == "Windows":
+
+        # Get library with function we need.
+        lib = ctypes.windll.kernel32
+
+        # Call function that gives us uptime in milliseconds.
+        ut_millis = lib.GetTickCount64()
+
+        # Return as seconds.
+        return ut_millis / 1000
+
+    # Linux.
+    elif platform.system() == "Linux":
+
+        # Use uptime to get time this machine started.
+        started_str = os.popen("uptime -s").read()[:-1]
+        started_dt = datetime.datetime.strptime(started_str, "%Y-%m-%d %H:%M:%S")
+
+        # Find difference between start time and time now.
+        time_now = datetime.datetime.now()
+        time_diff = time_now - started_dt
+
+        # Return time difference in seconds.
+        return time_diff.total_seconds()
+
+    # Un-supported platforms.
+    else:
+        print("ERROR: GetUptime() unsupported platform")
+        return 0
