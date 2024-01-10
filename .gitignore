@@ -1,3 +1,4 @@
 dist
 cruntils.egg-info
 cruntils/__pycache__
+tests/__pycache__

@@ -6,17 +6,6 @@ import os
 import platform
 import socket
 
-def CreateService():
-    """ Create a new Windows service
-
-    https://learn.microsoft.com/en-us/windows-server/administration/windows-commands/sc-create
-
-    https://stackoverflow.com/questions/3663331/when-creating-a-service-with-sc-exe-how-to-pass-in-context-parameters
-
-    In case it wasn't obvious, this is not yet implemented...
-    """
-    pass
-
 def GetPrimaryIp(target_address = "8.8.8.8", target_port = 80):
     """ Get the system default IP address.
 
