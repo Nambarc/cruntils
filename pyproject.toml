@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruntils"
-version = "0.0.15"
+version = "0.0.17"
 authors = [
   { name="Nambarc" }
 ]
@@ -12,6 +12,10 @@ description = "A collection of utilities."
 readme = "README.md"
 requires-python = ">=3.7"
 dependencies = [
-  "pyserial>=3.5",
+  "pyserial>=3.5"
+]
+
+[project.optional-dependencies]
+windows = [
   "pywin32>=306"
 ]
