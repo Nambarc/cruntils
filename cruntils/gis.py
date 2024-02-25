@@ -511,13 +511,10 @@ def GridEastNorthToLatLon(ntings, etings):
         # Compute new value for lat_dash.
         lat_dash = ((ntings - n0) / (a * f0)) + lat_dash
 
-
-
-
-
-
 class Egm():
-    """ Provide EGM96 geoid height values for a given latitude, longitude.
+    """ Provide EGM geoid height values.
+
+    Provide EGM96 geoid height values for a given latitude, longitude.
 
     There are several different EGM models available. I've implemented the
     EGM96 model - which is probably getting a little long in the tooth at this
@@ -539,16 +536,20 @@ class Egm():
         """ On class initialisation, read in the grid data.
         """
 
-        # Path to the EGM96 geoid height values. The element of the name mean:
-        # EGM96, world wide, 15 arc minute, grid height.
-        # Need a little magic to ensure the file is read from our own directory
-        # instead of the current working directory.
-        self.Egm96FilePath = os.path.realpath(__file__).replace("gis.py", "EGM96_WW_15M_GH.GRD")
-        self.Egm96GridHeights = []
+        # Structure holding data for different models.
+        self.Data = {
 
-        # Separation between each geoid height, in decimal degrees.
-        # 15 arc minutes. 15 / 60 = 0.25 degrees.
-        self.StepSize = 0.25
+            # EGM 1996, 15 minute resolution, world wide, geoid height grid.
+            "9615":
+            {
+                "data_file_path": os.path.realpath(__file__).replace("gis.py", "EGM96_WW_15M_GH.GRD"),
+                "step_size": 0.25,
+                "data": []
+            }
+        }
+
+        # Specify model to use.
+        self.Model = "9615"
 
         # Load the data.
         self.LoadData()
@@ -557,14 +558,20 @@ class Egm():
         """ Read EGM data from file into memory.
         """
 
+        # Get path to data file for selected model.
+        data_file_path = self.Data[self.Model]["data_file_path"]
+
         # Read data from file.
-        with open(self.Egm96FilePath, "r") as egm96_file:
-            data = egm96_file.read()
+        with open(data_file_path, "r") as data_file:
+            data = data_file.read()
 
         # Parse into array.
         current_row = []
-        row_length = 0
         for index, line in enumerate(data.split("\n")):
+
+            # Skip the first line, this is just a header.
+            if index == 0:
+                continue
 
             # Skip blank lines.
             if line == "":
@@ -580,48 +587,61 @@ class Egm():
             # Filter out empty strings.
             line_parts = list(filter(None, line_parts))
 
-            # Add data to current row.
+            # Add data points to current row, and convert to float as we go.
             for value in line_parts:
                 current_row.append(float(value))
 
-            # End row when enough data captured.
-            row_length += len(line_parts)
+            # When we find a row with a single value, this is the end of the
+            # current row. Add it to the row and move onto next row.
             if len(line_parts) == 1:
-                self.Egm96GridHeights.append(current_row)
+                self.Data[self.Model]["data"].append(current_row)
                 current_row = []
-                row_length = 0
-
-        # Now reverse the order of the rows so we don't have to play with
-        # latitude values when indexing.
-        self.Egm96GridHeights.reverse()
 
     def GetHeight(self, lat, lon):
         """ Get the EGM96 geoid height for a given latitude and longitude.
 
-        Latitude and longitude values must use the WGS84 reference ellipsoid.
+        Latitudes are expected as decimal degrees in the range 90 to -90.
 
-        Latitude and Longitude values must be provided as unsigned, decimal
-        degrees values.
+        Longitudes are expected as decimal degrees in the range -180 to 0 to
+        180.
+
+        Results are given as signed geoid height metres.
         """
 
-        # Assume we've been passed unsigned latitude and longitude values so
-        # there's no need to do any conversions.
+        # The first longitude in the file is 0° e.g. where x index = 0,
+        # longitude = 0°.
+        # The final index in the file is for -180° e.g. 360°.
+        # Longitudes are typically given as -180 to 180.
+        # For this it's easier to think of them in the range 0 to 360.
+        # So first convert -180 to 180 range into 0 to 360.
+        # Then can use longitude values directly to index file.
+        if lon < 0:
+            lon = 360 + lon
         x = lon
-        y = lat
+
+        # The first latitude in the file is 90° e.g. where y index = 0,
+        # latitude = 90°.
+        # The final index in the file is for -90°.
+        # Latitudes are typically given as 90 to -90.
+        # So need to convert the range 90 to -90 into an index.
+        y = 90 - lat
+
+        # Get step size for current model.
+        step_size = self.Data[self.Model]["step_size"]
 
         # Calculate the 4 surrounding points.
-        x1 = x - (x % self.StepSize)
-        x2 = x1 + self.StepSize
-        y1 = y - (y % self.StepSize)
-        y2 = y1 + self.StepSize
+        x1 = x - (x % step_size)
+        x2 = x1 + step_size
+        y1 = y - (y % step_size)
+        y2 = y1 + step_size
 
         # Get the geoid heights at the 4 surrounding points.
-        q11 = self.Egm96GridHeights[int(y1 / self.StepSize)][int(x1 / self.StepSize)]
-        q12 = self.Egm96GridHeights[int(y2 / self.StepSize)][int(x1 / self.StepSize)]
-        q21 = self.Egm96GridHeights[int(y1 / self.StepSize)][int(x2 / self.StepSize)]
-        q22 = self.Egm96GridHeights[int(y2 / self.StepSize)][int(x2 / self.StepSize)]
+        q11 = self.Data[self.Model]["data"][int(y1 / step_size)][int(x1 / step_size)]
+        q12 = self.Data[self.Model]["data"][int(y2 / step_size)][int(x1 / step_size)]
+        q21 = self.Data[self.Model]["data"][int(y1 / step_size)][int(x2 / step_size)]
+        q22 = self.Data[self.Model]["data"][int(y2 / step_size)][int(x2 / step_size)]
 
-        # Bilinear Interpolation of 4 points, to get our point.
+        # Bilinear Interpolation of 4 points, to get our result.
         xy1 = (((x2 - x) / (x2 - x1)) * q11) + (((x - x1) / (x2 - x1)) * q21)
         xy2 = (((x2 - x) / (x2 - x1)) * q12) + (((x - x1) / (x2 - x1)) * q22)
         yx = (((y2 - y) / (y2 - y1)) * xy1) + (((y - y1) / (y2 - y1)) * xy2)
