@@ -193,7 +193,7 @@ def DmsToDd(dms_str):
         dd *= -1
     return dd
 
-def DdToDms(dd, lat_or_lon):
+def DdToDms(dd, lat_or_lon, decimal_places = 4):
 
     # Do maths with positive value.
     dd_abs = abs(dd)
@@ -201,11 +201,18 @@ def DdToDms(dd, lat_or_lon):
     min = int((dd_abs - deg) * 60)
     sec = (dd_abs - deg - (min / 60)) * 3600
 
-    # Add bonus zeroes to first elements, seems to be a convention.
+    # Zero pad degrees element.
     if lat_or_lon == ELatLon.Lat:
         deg_str = f"{deg}".rjust(2, "0")
     elif lat_or_lon == ELatLon.Lon:
         deg_str = f"{deg}".rjust(3, "0")
+
+    # Zero pad minute element.
+    min_str = f"{min}".rjust(2, "0")
+
+    # Zero pad second element.
+    sec_str_parts = str(round(sec, decimal_places)).split(".")
+    sec_str = ".".join([sec_str_parts[0].rjust(2, "0"), str(sec_str_parts[1].ljust(decimal_places, "0"))])
 
     # Work out the suffix.
     if lat_or_lon == ELatLon.Lat:
@@ -217,18 +224,18 @@ def DdToDms(dd, lat_or_lon):
         if dd < 0:
             suffix = "W"
 
-    dms_str = f"{deg_str} {min} {round(sec, 4)} {suffix}"
+    dms_str = f"{deg_str} {min_str} {sec_str} {suffix}"
     return dms_str
 
-def LatDdToDms(dd):
+def LatDdToDms(dd, decimal_places = 4):
     """ Convert latitude in decimal degrees to degrees minutes seconds.
     """
-    return DdToDms(dd, ELatLon.Lat)
+    return DdToDms(dd, ELatLon.Lat, decimal_places)
 
-def LonDdToDms(dd):
+def LonDdToDms(dd, decimal_places = 4):
     """ Convert longitude in decimal degrees to degrees minutes seconds.
     """
-    return DdToDms(dd, ELatLon.Lon)
+    return DdToDms(dd, ELatLon.Lon, decimal_places)
 
 def LatLonDdToDms(lat_dd, lon_dd):
     lat_dms = DdToDms(lat_dd, ELatLon.Lat)
@@ -295,15 +302,18 @@ def GetWgs84():
     semi_minor = 6356752.3141
     return semi_major, semi_minor
 
-def HelmertTransform(x, y, z):
+def HelmertTransform(x, y, z, reverse = False):
     """ Perform a helmert transformation on the provided coordinates.
 
-    Approximate helmert transformation from WGS84 to OSGB36 / ODN.
+    Returns x, y, z
+
+    The constants here allow conversion between WGS84 and OSGB36.
+
+    Default is WGS84 to OSGB36. Set the reverse flag true to reverse the
+    operation e.g. OSGB36 to WGS84.
 
     These constant values come from section 6.6 of the document "A guide to
     coordinate systems in Great Britain", version 2.3.
-
-    returns x, y, z
     """
 
     # Metre values.
@@ -318,6 +328,16 @@ def HelmertTransform(x, y, z):
     rx = -0.1502
     ry = -0.2470
     rz = -0.8421
+
+    # Reverse if requested.
+    if reverse:
+        cx = cx * -1
+        cy = cy * -1
+        cz = cz * -1
+        s  = s  * -1
+        rx = rx * -1
+        ry = ry * -1
+        rz = rz * -1
 
     # Rad values.
     rx = (rx / (3600 * 180)) * math.pi
@@ -334,6 +354,8 @@ def HelmertTransform(x, y, z):
 def LatLonHeightToEcefCartesian(lat, lon, height, coord_format, ellipsoid_ref):
     """ Convert latitude, longitude, height to ECEF cartesian coordinates.
 
+    Returns x, y, z values in metres.
+
     Convert latitude, longitude, and ellipsoid height to Earth Centred Earth
     Fixed (ECEF) cartesian coordinates.
 
@@ -342,8 +364,6 @@ def LatLonHeightToEcefCartesian(lat, lon, height, coord_format, ellipsoid_ref):
     Specify the reference ellipsoid.
 
     Height is in metres.
-
-    returns x, y, z values in metres.
     """
 
     # Convert DMS lat/lon to decimal radians.
@@ -375,10 +395,10 @@ def LatLonHeightToEcefCartesian(lat, lon, height, coord_format, ellipsoid_ref):
 
     return x, y, z
 
-def LatLonToGridEastNorth(lat, lon):
-    """ Convert latitude, longitude, to grid eastings, northings.
+def LatLonToEastingNorthing(lat, lon):
+    """ Convert latitude, longitude, to easting, northing.
 
-    return eastings, northings
+    return easting, northing
     """
 
     # National grid constants.
@@ -428,17 +448,17 @@ def LatLonToGridEastNorth(lat, lon):
     VI = (v/120) * math.pow(math.cos(lat), 5) * (5 - (18 * utils.Tan2(lat)) + utils.Tan4(lat) + (14 * n2) - (58 * utils.Tan2(lat) * n2))
 
     # Finally calculate the northing and easting values.
-    N = I + (II * math.pow(lon - lon_0, 2)) + (III * math.pow(lon - lon_0, 4)) + (IIIA * math.pow(lon - lon_0, 6))
-    E = E0 + (IV * (lon - lon_0)) + (V * (math.pow(lon - lon_0, 3)) + (VI * (math.pow(lon - lon_0, 5))))
+    northing = I + (II * math.pow(lon - lon_0, 2)) + (III * math.pow(lon - lon_0, 4)) + (IIIA * math.pow(lon - lon_0, 6))
+    easting = E0 + (IV * (lon - lon_0)) + (V * (math.pow(lon - lon_0, 3)) + (VI * (math.pow(lon - lon_0, 5))))
 
-    return E, N
+    return easting, northing
 
-def NorthingsEastingsToGrid(ntings, etings, digits = 10):
+def NorthingEastingToGrid(northing, easting, digits = 10):
+    """ Convert northing, easting to UK OS grid reference.
     """
-    """
 
-    e100km = math.floor(etings / 100000)
-    n100km = math.floor(ntings / 100000)
+    e100km = math.floor(easting / 100000)
+    n100km = math.floor(northing / 100000)
 
     l1 = (19 - n100km) - (19 - n100km) % 5 + math.floor((e100km + 10) / 5)
     l2 = (19 - n100km) * 5 % 25 + e100km % 5
@@ -451,19 +471,50 @@ def NorthingsEastingsToGrid(ntings, etings, digits = 10):
 
     letter_pair = chr(l1 + ord("A")) + chr(l2 + ord("A"))
 
-    e = math.floor((etings % 100000) / math.pow(10, 5 - (digits / 2)))
-    n = math.floor((ntings % 100000) / math.pow(10, 5 - (digits / 2)))
+    e = math.floor((easting % 100000) / math.pow(10, 5 - (digits / 2)))
+    n = math.floor((northing % 100000) / math.pow(10, 5 - (digits / 2)))
 
     e = f"{int(e)}".rjust(int(digits / 2), "0")
     n = f"{int(n)}".rjust(int(digits / 2), "0")
 
     return f"{letter_pair} {e} {n}"
 
-def GridEastNorthToLatLon(ntings, etings):
-    """ Convert Ordanance Survey grid eastings northing to latitude longitude.
+def GridToEastingNorthing(grid: str):
+    """ Convert UK, OS grid reference to eastings, northings.
+    """
+
+    # Convert to uppercase.
+    grid = grid.upper()
+
+    # Convert second letter to numerical value.
+    l2 = ord(grid[1]) - ord("A")
+    if l2 > 7:
+        l2 -= 1
+
+    # Split grid reference into parts.
+    grid_parts = grid.split(" ")
+
+    # Calculate eastings.
+    easting = ((l2 % 5) * 100000) + int(grid_parts[1])
+    if grid[0] in ["J", "O", "T"]:
+        easting += 500000
+
+    # Calculate northings.
+    northing = ((4 - int(l2 / 5)) * 100000) + int(grid_parts[2])
+    if grid[0] == "N":
+        northing += 500000
+    elif grid[0] == "H":
+        northing += 1000000
+
+    return easting, northing
+
+def EastingNorthingToLatLon(easting, northing):
+    """ Convert Ordanance Survey grid easting, northing to latitude longitude.
 
     Converting from easting/northings to latitude/longitude is an iterative
     procedure.
+
+    Return lat/lon in DMS format.
     """
 
     # True origin latitude. φ, phi
@@ -484,32 +535,65 @@ def GridEastNorthToLatLon(ntings, etings):
     # Get ellipsoid constants.
     a, b = GetAiry1830()
 
+    # Lat dash (radians).
+    lat_dash = ((northing - n0) / (a * f0)) + lat_0
 
-    lat_dash = ((ntings - n0) / (a * f0)) + lat_0
-    print(f"Lat dash: {lat_dash}")
+    n = (a - b) / (a + b)
 
-    # TODO
-    # THIS IS NOT FINISHED BUT THERE'S OTHER STUFF I WANT TO ADD.
-
-    m = 0
-    while ((ntings - n0 - m) >= 0.001):
-
-        print(f"Value: {ntings - n0 - m}")
+    def ComputeM(n, lat_dash, lat_0, b, f0):
 
         # Compute m.
-        m1 = (1 + ntings + ((5/4) * math.pow(ntings, 2)) + ((5/4) * math.pow(ntings, 3))) * (lat_dash - lat_0)
-        m2_1 = ((3 * ntings) + (3 * math.pow(ntings, 2)) + ((21/8) * math.pow(ntings, 3)))
+        m1 = (1 + n + ((5/4) * math.pow(n, 2)) + ((5/4) * math.pow(n, 3))) * (lat_dash - lat_0)
+        m2_1 = ((3 * n) + (3 * math.pow(n, 2)) + ((21/8) * math.pow(n, 3)))
         m2_2 = math.sin(lat_dash - lat_0)
         m2_3 = math.cos(lat_dash + lat_0)
         m2 = m2_1 * m2_2 * m2_3
-        m3_1 = ((15/8) * math.pow(ntings, 2)) + ((15/8) * math.pow(ntings, 3))
+        m3_1 = ((15/8) * math.pow(n, 2)) + ((15/8) * math.pow(n, 3))
         m3_2 = math.sin(2 * (lat_dash - lat_0)) * math.cos(2 * (lat_dash + lat_0))
-        m3_3 = (35/24) * math.pow(ntings, 3) * math.sin(3 * (lat_dash - lat_0)) * math.cos(3 * (lat_dash + lat_0))
+        m3_3 = (35/24) * math.pow(n, 3) * math.sin(3 * (lat_dash - lat_0)) * math.cos(3 * (lat_dash + lat_0))
         m3 = (m3_1 * m3_2) - m3_3
         m = b * f0 * (m1 - m2 + m3)
 
-        # Compute new value for lat_dash.
-        lat_dash = ((ntings - n0) / (a * f0)) + lat_dash
+        return m
+
+    M = ComputeM(n, lat_dash, lat_0, b, f0)
+    while True:
+        lat_dash = ((northing - n0 - M) / (a * f0)) + lat_dash
+        M = ComputeM(n, lat_dash, lat_0, b, f0)
+
+        if abs(northing - n0 - M) < 0.00000001:
+            break
+
+    # First eccentricity.
+    e2 = Eccentricity1(a, b)
+
+    v = a * f0 * math.pow(1 - e2 * utils.Sin2(lat_dash), -0.5)
+
+    p = a * f0 * (1 - e2) * math.pow(1 - (e2 * utils.Sin2(lat_dash)), -1.5)
+
+    n2 = (v / p) - 1
+
+    vii = math.tan(lat_dash) / (2 * p * v)
+
+    viii = (math.tan(lat_dash) / (24 * p * math.pow(v, 3))) * (5 + (3 * utils.Tan2(lat_dash)) + n2 - (9 * utils.Tan2(lat_dash) * n2))
+
+    ix = (math.tan(lat_dash) / (720 * p * math.pow(v, 5))) * (61 + (90 * utils.Tan2(lat_dash)) + (45 * utils.Tan4(lat_dash)))
+
+    x = utils.Sec(lat_dash) / v
+
+    xi = (utils.Sec(lat_dash) / (6 * math.pow(v, 3))) * ((v / p) + (2 * utils.Tan2(lat_dash)))
+
+    xii = (utils.Sec(lat_dash) / (120 * math.pow(v, 5))) * (5 + (28 * utils.Tan2(lat_dash)) + (24 * utils.Tan4(lat_dash)))
+
+    xiia = (utils.Sec(lat_dash) / (5040 * math.pow(v, 7))) * (61 + (662 * utils.Tan2(lat_dash)) + (1320 * utils.Tan4(lat_dash)) + (720 * utils.Tan6(lat_dash)))
+
+    lat = lat_dash - (vii * math.pow(easting - e0, 2)) + (viii * math.pow(easting - e0, 4)) - (ix * math.pow(easting - e0, 6))
+    lat = utils.RadToDeg(lat)
+
+    lon = lon_0 + (x * (easting - e0)) - (xi * math.pow(easting - e0, 3)) + (xii * math.pow(easting - e0, 5)) - (xiia * math.pow(easting - e0, 7))
+    lon = utils.RadToDeg(lon)
+
+    return lat, lon
 
 class Egm():
     """ Provide EGM geoid height values.

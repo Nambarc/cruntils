@@ -52,7 +52,7 @@ assert location.GetLon(True)  == 31.13419577459987
 assert location.GetLon(False) == 31.13419577459987
 assert egm.GetHeight(*location.GetLatLon(True)) == 15.46
 assert cruntils.gis.LatDdToDms(location.GetLat()) == "29 58 44.9331 N"
-assert cruntils.gis.LonDdToDms(location.GetLon()) == "031 8 3.1048 E"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "031 08 03.1048 E"
 
 location = cruntils.gis.CLocation(13.412544924724, 103.866982081196)
 assert location.GetLat(True)  == 13.412544924724
@@ -61,7 +61,7 @@ assert location.GetLon(True)  == 103.866982081196
 assert location.GetLon(False) == 103.866982081196
 assert egm.GetHeight(*location.GetLatLon(True)) == -20.74
 assert cruntils.gis.LatDdToDms(location.GetLat()) == "13 24 45.1617 N"
-assert cruntils.gis.LonDdToDms(location.GetLon()) == "103 52 1.1355 E"
+assert cruntils.gis.LonDdToDms(location.GetLon()) == "103 52 01.1355 E"
 
 location = cruntils.gis.CLocation(-33.856814228066426, 151.21527245566526)
 assert location.GetLat(True)  == -33.856814228066426
@@ -78,7 +78,7 @@ assert location.GetLat(False) == 138.85824194192017
 assert location.GetLon(True)  == 2.2947293419960277
 assert location.GetLon(False) == 2.2947293419960277
 assert egm.GetHeight(*location.GetLatLon(True)) == 44.58
-assert cruntils.gis.LatDdToDms(location.GetLat()) == "48 51 29.671 N"
+assert cruntils.gis.LatDdToDms(location.GetLat(), 3) == "48 51 29.671 N"
 assert cruntils.gis.LonDdToDms(location.GetLon()) == "002 17 41.0256 E"
 
 location = cruntils.gis.CLocation(27.175082927193554, 78.04218888603889)
@@ -88,7 +88,7 @@ assert location.GetLon(True)  == 78.04218888603889
 assert location.GetLon(False) == 78.04218888603889
 assert egm.GetHeight(*location.GetLatLon(True)) == -56.65
 assert cruntils.gis.LatDdToDms(location.GetLat()) == "27 10 30.2985 N"
-assert cruntils.gis.LonDdToDms(location.GetLon()) == "078 2 31.88 E"
+assert cruntils.gis.LonDdToDms(location.GetLon(), 2) == "078 02 31.88 E"
 
 location = cruntils.gis.CLocation(25.197099645751745, 55.27436713304521)
 assert location.GetLat(True)  == 25.197099645751745
@@ -105,7 +105,7 @@ assert location.GetLat(False) == 76.83711916144189
 assert location.GetLon(True)  == -72.54499246486483
 assert location.GetLon(False) == 287.45500753513517
 assert egm.GetHeight(*location.GetLatLon(True)) == 41.0
-assert cruntils.gis.LatDdToDms(location.GetLat()) == "13 9 46.371 S"
+assert cruntils.gis.LatDdToDms(location.GetLat(), 3) == "13 09 46.371 S"
 assert cruntils.gis.LonDdToDms(location.GetLon()) == "072 32 41.9729 W"
 
 location = cruntils.gis.CLocation(40.4328165861077, 116.56384082714345)
@@ -353,25 +353,57 @@ assert cruntils.utils.ConvertAngle(380, True)  == 20
 assert cruntils.utils.ConvertAngle(390, True)  == 30
 assert cruntils.utils.ConvertAngle(400, True)  == 40
 
-# Test conversion to and from DD and DMS.
-# TBC
+# OS grid references -> OSGB36 lat/lon -> WGS84 lat/lon.
 
-
-# Define a list of trig pillar locations.
+# List of trig pillar locations.
 trig_pillar_locations_list = [
-    { "name": "Outwood",        "grid_ref": "TQ 33246 45539", "wgs84_latlon": ["51 11 36.76 N", "000 05 40.22 W"]},
-    { "name": "Chat Hill Farm", "grid_ref": "TQ 37978 48283" },
-    { "name": "Gaywood Farm",   "grid_ref": "TQ 43190 48740" },
-    { "name": "Mountjoy Farm",  "grid_ref": "TQ 51279 47834" },
-    { "name": "Dry Hill",       "grid_ref": "TQ 43200 41606" },
-    { "name": "Markbeech",      "grid_ref": "TQ 47758 42534" },
-    { "name": "Smarts Hill",    "grid_ref": "TQ 51345 42253" },
-    { "name": "Great Bounds",   "grid_ref": "TQ 57293 43566" },
-    { "name": "Salehurst",      "grid_ref": "TQ 48431 39143" },
-    { "name": "Cherry Garden",  "grid_ref": "TQ 51101 35644" },
-    { "name": "Hindleap",       "grid_ref": "TQ 40354 32381" },
-    { "name": "Gills Lap",      "grid_ref": "TQ 46859 31965" },
-    { "name": "Crowborough",    "grid_ref": "TQ 51169 30761" }
+    { 
+        "name": "Heights Of Ramnageo",
+        "grid": "HU 52944 80607",
+        "easting": 452944, "northing": 1180607,
+        "lat_osgb36": "60 30 22.345 N", "lon_osgb36": "001 02 09.3164 W",
+        "lat_wgs84": "60 30 20.28 N", "lon_wgs84": "001 02 16.40 W"
+        },
+    # { "name": "Hill Of Rigifa"     , "grid": "ND 30479 72144", "easting": 330479, "northing": 972144 },
+    # { "name": "Nisa Mhor"          , "grid": "NB 09001 35458", "easting": 109001, "northing": 935458 },
+    # { "name": "Kincraig Hill"      , "grid": "NT 46775 99914", "easting": 346775, "northing": 699914 },
+    # { "name": "Fingland Fell"      , "grid": "NY 14968 95090", "easting": 314968, "northing": 595090 },
+    # { "name": "Torrisholme Barrow" , "grid": "SD 45970 64246", "easting": 345970, "northing": 464246 },
+    # { "name": "Somerton Castle"    , "grid": "SK 95322 58639", "easting": 495322, "northing": 358639 },
+    # { "name": "Barr Beacon Resr"   , "grid": "SP 06070 97380", "easting": 406070, "northing": 297380 },
+    # { "name": "East Wretham"       , "grid": "TL 91943 89941", "easting": 591943, "northing": 289941 },
+    # { "name": "Plaistow Resr"      , "grid": "TQ 40315 71355", "easting": 540315, "northing": 171355 },
+    # { "name": "Dry Hill"           , "grid": "TQ 43200 41606", "easting": 543200, "northing": 141606 },
+    # { "name": "Charlton Clumps"    , "grid": "SU 10208 54575", "easting": 410208, "northing": 154575 },
+    # { "name": "Pellyn-Wartha"      , "grid": "SW 75962 38767", "easting": 175962, "northing": 38767 }
 ]
 
-# Need to do maths for grid to lat lon!
+# Test coordinate conversion routines - UK based.
+for trig_pillar in trig_pillar_locations_list:
+
+    # Convert UK OS grid to easting, northing.
+    easting, northing = cruntils.gis.GridToEastingNorthing(trig_pillar["grid"])
+
+    # Check conversion.
+    assert easting == trig_pillar["easting"]
+    assert northing == trig_pillar["northing"]
+
+    # Convert easting, northing to DD lat, lon - OSGB36 reference.
+    lat_dd, lon_dd = cruntils.gis.EastingNorthingToLatLon(easting, northing)
+    lat_dms = cruntils.gis.LatDdToDms(lat_dd, 3)
+    lon_dms = cruntils.gis.LonDdToDms(lon_dd)
+
+    # Check conversion.
+    assert lat_dms == trig_pillar["lat_osgb36"]
+    assert lon_dms == trig_pillar["lon_osgb36"]
+
+    # Convert OSGB36 lat, lon to WGS84 lat, lon.
+    x, y, z = cruntils.gis.LatLonHeightToEcefCartesian(lat_dd, lon_dd, 0, cruntils.gis.ECoordFormat.LatLonDd, cruntils.gis.EReferenceEllipsoid.Airy1830)
+    x, y, z = cruntils.gis.HelmertTransform(x, y, z, True)
+    lat_dd, lon_dd, height = cruntils.gis.CartesianToLatLon(x, y, z, cruntils.gis.EReferenceEllipsoid.Wgs84)
+    lat_dms = cruntils.gis.LatDdToDms(lat_dd, 2)
+    lon_dms = cruntils.gis.LonDdToDms(lon_dd, 2)
+
+    # Check conversion.
+    assert lat_dms == trig_pillar["lat_wgs84"]
+    assert lon_dms == trig_pillar["lon_wgs84"]

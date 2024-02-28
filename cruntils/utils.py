@@ -27,6 +27,9 @@ def Cos4(angle):
 def Cos5(angle):
     return math.pow(math.cos(angle), 5)
 
+def Sin2(angle):
+    return math.pow(math.sin(angle), 2)
+
 def Tan2(angle):
     return math.pow(math.tan(angle), 2)
 
@@ -38,6 +41,18 @@ def Tan4(angle):
 
 def Tan5(angle):
     return math.pow(math.tan(angle), 5)
+
+def Tan6(angle):
+    return math.pow(math.tan(angle), 6)
+
+def Sec(angle):
+    return 1 / math.cos(angle)
+
+def Cosec(angle):
+    return 1 / math.sin(angle)
+
+def Cot(angle):
+    return 1 / math.tan(angle)
 
 #------------------------------------------------------------------------------
 # Miscellaneous.
