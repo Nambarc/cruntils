@@ -16,9 +16,6 @@ class Database:
         self.conn_info = conn_info
         self.conn = psycopg.connect(self.conn_info)
 
-        # Ensure required tables exist.
-        self.table_item()
-
     def __del__(self):
         """Destructor."""
         self.disconnect()
