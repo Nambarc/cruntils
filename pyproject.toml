@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruntils"
-version = "0.0.18"
+version = "0.1.0"
 authors = [
   { name="Nambarc" }
 ]
@@ -19,3 +19,6 @@ dependencies = [
 windows = [
   "pywin32>=306"
 ]
+
+[tool.setuptools.package-data]
+myModule = ["EGM96_WW_15M_GH.GRD"]
