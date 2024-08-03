@@ -615,6 +615,9 @@ class Egm():
     or I may have made a mistake in my interpolation / parsing of the file.
     Either way, the values I'm producing are good enough for my purposes but
     this implementation may require further work.
+
+    A nice online tool for value lookup.
+    https://www.unavco.org/software/geodetic-utilities/geoid-height-calculator/geoid-height-calculator.html
     """
     def __init__(self):
         """ On class initialisation, read in the grid data.
@@ -731,3 +734,29 @@ class Egm():
         yx = (((y2 - y) / (y2 - y1)) * xy1) + (((y - y1) / (y2 - y1)) * xy2)
 
         return round(yx, 2)
+
+class GridGenerator:
+    """ Generate a 2D grid of coordinates.
+
+    Generate a 2D grid of coordinates between the provided top left and bottom
+    right coordinates with the specified separation between points.
+    """
+
+    def __init__(self, tl: list, br: list, sep: float):
+
+        # Initialise.
+        self.lat_start = tl[0]
+        self.lon_start = tl[1]
+        self.lat_final = br[0]
+        self.lon_final = br[1]
+        self.lat = self.lat_start - sep
+        self.lon = self.lon_start - sep
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+
+        # Reset longitude.
+        if self.lon >= self.lon_final:
+            self.lon = self.lon_start

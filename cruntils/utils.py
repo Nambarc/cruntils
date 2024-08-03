@@ -2,6 +2,7 @@
 # Core Python imports.
 from enum import Enum
 import math
+import sys
 
 #------------------------------------------------------------------------------
 # Constants.
@@ -371,3 +372,48 @@ class Grid:
                 if item == value:
                     items.append([row_index, col_index])
         return items
+
+#------------------------------------------------------------------------------
+
+class LoadingBar:
+    """
+    A terminal loading bar.
+
+    Example code, how to use:
+
+    import time
+    bar = LoadingBar()
+    percent = 0
+    while True:
+        bar.update(percent)
+        percent += 1
+        time.sleep(0.3)
+        if percent >= 100:
+            break
+    """
+
+    def __init__(self):
+        self.percent:float = 0
+
+    def update_percent(self, percent):
+        """Update and display."""
+        self.percent = percent
+        self.display()
+
+    def display(self):
+        """Display the loading bar."""
+
+        # Clear the current line.
+        sys.stdout.write("\033[2K")
+
+        # Go to start of line.
+        sys.stdout.write("\033[1000D")
+
+        # Work out how many symbols to draw.
+        symbols = int((self.percent / 100) * 50)
+
+        # Draw loading bar.
+        sys.stdout.write("[" + (symbols * "=") + ((50 - symbols) * " ") + f"] ({self.percent}%)")
+
+        # Flush to display.
+        sys.stdout.flush()

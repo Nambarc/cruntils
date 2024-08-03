@@ -361,8 +361,11 @@ trig_pillar_locations_list = [
         "name": "Heights Of Ramnageo",
         "grid": "HU 52944 80607",
         "easting": 452944, "northing": 1180607,
-        "lat_osgb36": "60 30 22.345 N", "lon_osgb36": "001 02 09.3164 W",
-        "lat_wgs84": "60 30 20.28 N", "lon_wgs84": "001 02 16.40 W"
+        "lat_osgb36": {"value": "60 30 22.345 N", "decimal_places": 3},
+        "lon_osgb36": {"value": "001 02 09.3164 W", "decimal_places": 4},
+        "lat_wgs84": {"value": "60 30 20.28 N", "decimal_places": 2},
+        "lon_wgs84": {"value": "001 02 16.40 W",  "decimal_places": 2},
+        "egm9615": 50.06
         },
     # { "name": "Hill Of Rigifa"     , "grid": "ND 30479 72144", "easting": 330479, "northing": 972144 },
     # { "name": "Nisa Mhor"          , "grid": "NB 09001 35458", "easting": 109001, "northing": 935458 },
@@ -389,21 +392,36 @@ for trig_pillar in trig_pillar_locations_list:
     assert northing == trig_pillar["northing"]
 
     # Convert easting, northing to DD lat, lon - OSGB36 reference.
-    lat_dd, lon_dd = cruntils.gis.EastingNorthingToLatLon(easting, northing)
-    lat_dms = cruntils.gis.LatDdToDms(lat_dd, 3)
-    lon_dms = cruntils.gis.LonDdToDms(lon_dd)
+    lat_dd_osgb36, lon_dd_osgb36 = cruntils.gis.EastingNorthingToLatLon(easting, northing)
+    lat_dms_osgb36 = cruntils.gis.LatDdToDms(lat_dd_osgb36, trig_pillar["lat_osgb36"]["decimal_places"])
+    lon_dms_osgb36 = cruntils.gis.LonDdToDms(lon_dd_osgb36, trig_pillar["lon_osgb36"]["decimal_places"])
 
     # Check conversion.
-    assert lat_dms == trig_pillar["lat_osgb36"]
-    assert lon_dms == trig_pillar["lon_osgb36"]
+    assert lat_dms_osgb36 == trig_pillar["lat_osgb36"]["value"]
+    assert lon_dms_osgb36 == trig_pillar["lon_osgb36"]["value"]
 
     # Convert OSGB36 lat, lon to WGS84 lat, lon.
-    x, y, z = cruntils.gis.LatLonHeightToEcefCartesian(lat_dd, lon_dd, 0, cruntils.gis.ECoordFormat.LatLonDd, cruntils.gis.EReferenceEllipsoid.Airy1830)
+    x, y, z = cruntils.gis.LatLonHeightToEcefCartesian(lat_dd_osgb36, lon_dd_osgb36, 0, cruntils.gis.ECoordFormat.LatLonDd, cruntils.gis.EReferenceEllipsoid.Airy1830)
     x, y, z = cruntils.gis.HelmertTransform(x, y, z, True)
-    lat_dd, lon_dd, height = cruntils.gis.CartesianToLatLon(x, y, z, cruntils.gis.EReferenceEllipsoid.Wgs84)
-    lat_dms = cruntils.gis.LatDdToDms(lat_dd, 2)
-    lon_dms = cruntils.gis.LonDdToDms(lon_dd, 2)
+    lat_dd_wgs84, lon_dd_wgs84, height = cruntils.gis.CartesianToLatLon(x, y, z, cruntils.gis.EReferenceEllipsoid.Wgs84)
+    lat_dms_wgs84 = cruntils.gis.LatDdToDms(lat_dd_wgs84, trig_pillar["lat_wgs84"]["decimal_places"])
+    lon_dms_wgs84 = cruntils.gis.LonDdToDms(lon_dd_wgs84, trig_pillar["lon_wgs84"]["decimal_places"])
 
     # Check conversion.
-    assert lat_dms == trig_pillar["lat_wgs84"]
-    assert lon_dms == trig_pillar["lon_wgs84"]
+    assert lat_dms_wgs84 == trig_pillar["lat_wgs84"]["value"]
+    assert lon_dms_wgs84 == trig_pillar["lon_wgs84"]["value"]
+
+    # Get EGM96 geoid offset for this location and compare.
+    assert egm.GetHeight(lat_dd_wgs84, lon_dd_wgs84) == trig_pillar["egm9615"]
+
+
+grid_gen = cruntils.gis.GridGenerator(
+    [51.164842, -1.776302],
+    [51.142306, -1.723015],
+    0.000125
+)
+
+for item in grid_gen:
+    print(item)
+
+
