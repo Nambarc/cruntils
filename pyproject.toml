@@ -4,10 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "cruntils"
-version = "0.1.1"
-authors = [
-  { name="Nambarc" }
-]
+version = "1.0.0"
+authors = [{name="CReed"}]
 description = "A collection of utilities."
 readme = "README.md"
 requires-python = ">=3.7"
