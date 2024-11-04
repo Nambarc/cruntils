@@ -60,15 +60,15 @@ class MappedNetworkDrives:
             # Iterate through values backwards as the "RemotePath" value tends
             # to appear towards the end of the list.
             unc_path: str = ""
-            value_index = mapped_drive_info[1] - 1
-            while value_index > 0:
+            value_index = 0
+            while value_index < mapped_drive_info[1]:
                 current_value = winreg.EnumValue(mapped_drive, value_index)
                 if current_value[0] == "RemotePath":
                     unc_path = current_value[1]
                     unc_path = unc_path.replace("\\\\", "\\")
                     self.letter_unc_map[drive_letter] = unc_path
                     break
-                value_index -= 1
+                value_index += 1
 
             # Got to next drive.
             current_index += 1
