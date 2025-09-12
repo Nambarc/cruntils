@@ -25,6 +25,12 @@ I used a few resources to figure this out:
     OCI Distribution Specification.
     Downloaded as PDF.
 
+N.B.
+For docker images that are identified by a single word tag, "library/" must
+be appended to the tag e.g. 'postgres' would become 'library/postgres'.
+Other tags that involves a containing folder need not be modified e.g.
+'atlassian/jira-software' remains the same.
+
 Simple example usage:
 
 # Establish instance.
