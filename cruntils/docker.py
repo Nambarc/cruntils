@@ -1,6 +1,7 @@
 
 # Core Python.
 import json
+import os
 import subprocess
 
 class DockerImage:
@@ -29,7 +30,7 @@ class DockerImage:
         self.image_path = image_path
     def pull(self):
         """Pull image to local machine"""
-        print(f"Pulling image {self.image_path}", end="", flush=True)
+        print(f"Pulling image {self.image_path}...", end="", flush=True)
         cmd_parts = [
             "docker",
             "image",
@@ -43,13 +44,16 @@ class DockerImage:
         )
         print("done!")
     def archive_name_to_image_path(self, archive_name: str):
-        """Work out image path from archive name"""
-        pass
+        """Work out image path from archive name
+        Opposite of get_archive_name.
+        """
+        return ""
     def get_archive_name(self):
         """Work out archive name from image path"""
         image_archive_name = self.image_path.replace("-", "_")
         image_archive_name = image_archive_name.replace("/", "__")
         image_archive_name = image_archive_name.replace(":", "___")
+        image_archive_name += ".tar"
         return image_archive_name
     def save(self):
         """Save image to tar file"""
@@ -60,6 +64,29 @@ class DockerImage:
             "save",
             "--output",
             self.get_archive_name(),
+            self.image_path
+        ]
+        proc = subprocess.run(
+            cmd_parts,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE
+        )
+        print(f"done!")
+    def delete_archive(self):
+        """If there's a local archive file, delete it"""
+        print(f"Deleting image archive file...", end="", flush=True)
+        if os.path.isfile(self.get_archive_name()):
+            os.remove(self.get_archive_name())
+            print("deleted!")
+        else:
+            print("nothing to delete")
+    def remove(self):
+        """Remove the local image"""
+        print(f"Removing local docker agent copy of image...", end="", flush=True)
+        cmd_parts = [
+            "docker",
+            "image",
+            "rm",
             self.image_path
         ]
         proc = subprocess.run(
