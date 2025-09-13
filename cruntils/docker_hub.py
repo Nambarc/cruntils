@@ -73,6 +73,8 @@ class DockerHub:
     def __init__(self):
         self.server = "https://registry-1.docker.io/v2"
         self.json_token = None
+        self.proxies = {}
+        self.verify = None
 
     def _ensure_auth(self, tag):
         """Ensure we are correctly authorized"""
@@ -87,7 +89,7 @@ class DockerHub:
         This could be expanded to cater for more types of authentication.
         """
         url = f"https://auth.docker.io/token?service=registry.docker.io&scope=repository:{tag}:pull"
-        response = requests.get(url)
+        response = requests.get(url, proxies=self.proxies, verify=self.verify)
         self.json_token = response.json()
 
     def _get_token(self):
@@ -101,7 +103,7 @@ class DockerHub:
 
         # Make the request.
         headers = {"Authorization": f"Bearer {self._get_token()}"}
-        response = requests.get(url, headers = headers)
+        response = requests.get(url, headers=headers, proxies=self.proxies, verify=self.verify)
 
         # Handle errors.
         if response.status_code != 200:
@@ -176,6 +178,28 @@ class DockerHub:
 
         # Return the updated image_manifest.
         return image_manifest
+
+    def disable_ssl_verification(self, hide_warnings: bool = False):
+        """Disable SSL certificate verification for HTTPS requests.
+        
+        Also optionally disable insecure warnings.
+        """
+        self.verify = False
+        if hide_warnings:
+            from requests.packages import urllib3
+            urllib3.disable_warnings(category=urllib3.exceptions.InsecureRequestWarning)
+
+    def set_proxy(self, protocol: str, proxy: str):
+        """Set a proxy to use"""
+        self.proxies[protocol] = proxy
+
+    def list_proxies(self):
+        """Show proxy settings"""
+        print(json.dumps(self.proxies, indent=2))
+
+    def clear_proxies(self):
+        """Clear all proxy settings"""
+        self.proxies = {}
 
     def list_versions(self, tag):
         """Get the available tags for a given image.
